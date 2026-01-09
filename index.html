@@ -1,0 +1,1011 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>어둠의 거래소</title>
+
+<style>
+  :root{
+    --W: 1024px;
+    --H: 768px;
+
+    --bg:#07070b;
+    --panel:#111118;
+    --panel2:#0c0c12;
+    --line:#e9e9f2;
+    --muted:#b9b9c9;
+
+    --red:#ff2f2f;
+    --yellow:#ffd83a;
+    --shadow:#000;
+  }
+
+  *{
+    box-sizing:border-box;
+    font-family: ui-monospace, Menlo, Consolas, "Courier New", monospace;
+    -webkit-font-smoothing:none;
+    -moz-osx-font-smoothing:grayscale;
+    letter-spacing:0.2px;
+  }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:#f6f6ff;
+    overflow:hidden;
+  }
+
+  /* ✅ iPad/모바일 한 화면 자동 축소 */
+  #scaleRoot{
+    width: calc(var(--W) + 40px);
+    margin: 0 auto;
+    transform-origin: top center;
+  }
+
+  .frame{
+    width: var(--W);
+    height: var(--H);
+    margin: 14px auto 0;
+    border: 4px solid var(--line);
+    background:
+      radial-gradient(circle at 30% 20%, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 40%),
+      radial-gradient(circle at 80% 70%, rgba(255,255,255,.05) 0%, rgba(255,255,255,0) 45%),
+      var(--bg);
+    position:relative;
+    overflow:hidden; /* ✅ 스크롤 없이 한 화면 정책 */
+  }
+
+  .titleBar{
+    height: 64px;
+    border-bottom: 4px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 22px;
+    font-weight: 900;
+    text-shadow: 2px 2px 0 var(--shadow);
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 14px, rgba(255,255,255,.02) 14px 28px);
+  }
+
+  .card{
+    border:4px solid var(--line);
+    background: linear-gradient(#0b0b12, #0b0b12);
+    box-shadow: 0 0 0 4px rgba(0,0,0,.25) inset;
+  }
+
+  /* 말풍선 */
+  .bubble{
+    width: min(760px, 92%);
+    min-height: 84px;               /* ✅ 줄임 */
+    padding: 12px 14px;             /* ✅ 줄임 */
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1.35;
+    text-shadow: 2px 2px 0 var(--shadow);
+    position:relative;
+    background: var(--panel);
+    border:4px solid var(--line);
+    margin: 0 auto;
+    text-align:left;
+  }
+  .bubble::before{
+    content:"";
+    position:absolute;
+    left:-18px;
+    bottom:24px;
+    width:0;height:0;
+    border-top: 12px solid transparent;
+    border-bottom: 12px solid transparent;
+    border-right: 18px solid var(--line);
+  }
+  .bubble::after{
+    content:"";
+    position:absolute;
+    left:-12px;
+    bottom:26px;
+    width:0;height:0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 14px solid var(--panel);
+  }
+
+  .screen{
+    position:absolute;
+    inset:0;
+    display:none;
+    padding: 14px;                  /* ✅ 여백 약간 줄임 */
+    gap: 10px;                      /* ✅ 간격 줄임 */
+  }
+  .screen.show{ display:flex; flex-direction:column; }
+
+  /* ---------- SCREEN 1 ---------- */
+  .s1Top{
+    flex: 1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 14px;
+    padding-top: 2px;
+  }
+
+  .strangerBig{
+    width: 300px;                   /* ✅ 조금 줄임 */
+    height: 300px;
+    border:4px solid var(--line);
+    background: var(--panel2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+  .strangerBig img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    image-rendering: pixelated;
+    user-select:none;
+    pointer-events:none;
+  }
+
+  .s1Bet{
+    height: 150px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 14px;
+  }
+
+  .heartLabel{
+    font-size: 28px;
+    font-weight: 900;
+    padding: 10px 14px;
+    border:4px solid var(--line);
+    background: var(--panel2);
+    text-shadow: 2px 2px 0 var(--shadow);
+  }
+
+  .betBox{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    padding: 10px 14px;
+    border:4px solid var(--line);
+    background: var(--panel2);
+    font-size: 20px;
+    font-weight: 900;
+    text-shadow: 2px 2px 0 var(--shadow);
+  }
+
+  .numCard{
+    min-width: 78px;
+    text-align:center;
+    padding: 8px 10px;
+    border:4px solid var(--line);
+    background: #07070b;
+    font-size: 22px;
+  }
+
+  .btnRow{
+    height: 74px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap: 14px;
+  }
+
+  .btn{
+    border:4px solid var(--line);
+    background: var(--panel);
+    color:#f6f6ff;
+    font-size: 18px;
+    font-weight: 900;
+    padding: 12px 16px;
+    cursor:pointer;
+    text-shadow: 2px 2px 0 var(--shadow);
+    min-width: 160px;
+  }
+  .btn:active{ transform: translateY(2px); }
+  .btn.small{ min-width: 130px; }
+
+  .mutedHint{
+    color: var(--muted);
+    font-weight: 900;
+    font-size: 12px;
+    opacity: .8;
+    text-align:center;
+  }
+
+  /* ---------- SCREEN 2 (잘림 방지용 컴팩트 레이아웃) ---------- */
+  .s2Header{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 10px;
+  }
+
+  .strangerSmall{
+    width: 160px;                   /* ✅ 더 줄임 */
+    height: 120px;
+    border:4px solid var(--line);
+    background: var(--panel2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    margin: 0 auto;
+  }
+  .strangerSmall img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    image-rendering: pixelated;
+    user-select:none;
+    pointer-events:none;
+  }
+
+  .resultBanner{
+    width: min(820px, 94%);
+    border:4px solid var(--line);
+    background: var(--panel2);
+    padding: 10px 12px;
+    text-align:center;
+    font-size: 36px;
+    font-weight: 900;
+    text-shadow: 3px 3px 0 var(--shadow);
+    min-height: 70px;               /* ✅ 줄임 */
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 10px;
+    margin: 0 auto;
+  }
+
+  .gainTag{
+    display:none;
+    padding: 6px 12px;
+    border:4px solid #000;
+    background: var(--yellow);
+    color: var(--red);
+    font-size: 22px;
+    font-weight: 900;
+    text-shadow:none;
+    animation: blink 0.16s steps(2) infinite;
+  }
+  @keyframes blink{ 0%{opacity:1;} 50%{opacity:.35;} 100%{opacity:1;} }
+
+  /* ✅ 합쳐진 원형(숫자판 + 가위바위보 중앙) */
+  .comboWrap{
+    width: min(760px, 94%);
+    margin: 0 auto;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding: 12px;
+  }
+
+  .comboCard{
+    width: 620px;
+    height: 320px;                  /* ✅ 잘림 방지: 높이 제한 */
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .comboRing{
+    width: 280px;
+    height: 280px;
+    border-radius: 999px;
+    border:4px solid var(--line);
+    background: radial-gradient(circle at 50% 50%, #000 0 46%, #15151e 46% 100%);
+    position:relative;
+  }
+
+  /* 숫자 */
+  .mulRing{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+  }
+  .mulRing span{
+    position:absolute;
+    padding: 2px 8px;
+    font-size: 18px;
+    font-weight: 900;
+    color:#f6f6ff;
+    text-shadow:2px 2px 0 var(--shadow);
+    border:2px solid rgba(255,255,255,.18);
+    background: rgba(0,0,0,.18);
+    transform: translate(-50%,-50%);
+  }
+  .mulRing span.hit{
+    background: var(--yellow);
+    color:#111;
+    border-color:#111;
+    text-shadow:none;
+  }
+
+  /* 중앙 검은 원 + 손 */
+  .centerDisc{
+    position:absolute;
+    left:50%; top:50%;
+    transform: translate(-50%,-50%);
+    width: 140px;
+    height: 140px;
+    border-radius: 999px;
+    background:#000;
+    border:4px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .handBox{
+    width: 106px;
+    height: 106px;
+    border-radius: 999px;
+    border:4px solid var(--red);
+    background:#000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 60px;
+    font-weight: 900;
+    color: var(--red);
+    text-shadow: 0 0 14px rgba(255,50,50,.55);
+  }
+
+  /* 불빛 */
+  .lightDot{
+    position:absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    border:4px solid var(--yellow);
+    background: var(--red);
+    display:none;
+    box-shadow: 0 0 12px rgba(255,216,58,.6);
+    transform: translate(-50%,-50%);
+    left:50%; top:10px;
+  }
+
+  .pickRow{
+    display:flex;
+    justify-content:center;
+    gap: 14px;
+    padding-bottom: 4px;
+  }
+  .pickBtn{
+    width: 210px;
+    height: 56px;
+    border-radius: 999px;
+    border:4px solid var(--line);
+    background: var(--panel);
+    color:#f6f6ff;
+    font-size: 18px;
+    font-weight: 900;
+    cursor:pointer;
+    text-shadow: 2px 2px 0 var(--shadow);
+  }
+  .pickBtn:active{ transform: translateY(2px); }
+
+  /* ---------- SCREEN 3 (잘림 방지: 이미지 줄임 + 간격 줄임) ---------- */
+  .s3Wrap{
+    height: calc(100% - 64px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: 12px;
+    padding-top: 8px;
+  }
+
+  .gainBig{
+    font-size: 44px;                /* ✅ 줄임 */
+    font-weight: 900;
+    padding: 10px 18px;
+    border:4px solid #000;
+    background: var(--yellow);
+    color: var(--red);
+    text-shadow:none;
+    animation: blink 0.16s steps(2) infinite;
+    min-width: min(560px, 92%);
+    text-align:center;
+  }
+
+  .s3Stranger{
+    width: 320px;                   /* ✅ 360→320 */
+    height: 320px;
+    border:4px solid var(--line);
+    background: var(--panel2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+  .s3Stranger img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    image-rendering: pixelated;
+    user-select:none;
+    pointer-events:none;
+  }
+
+  .blankRow{
+    display:flex;
+    gap: 16px;
+    margin-top: 6px;
+  }
+  .blankBtn{
+    width: 120px;
+    height: 58px;
+    border-radius: 999px;
+    border:4px solid var(--line);
+    background: var(--panel);
+    cursor:pointer;
+  }
+  .blankBtn:active{ transform: translateY(2px); }
+
+  /* ✅ 2,3 화면: stranger(왼쪽) + 말풍선(오른쪽) 가로 배치 */
+.rowTalk{
+  width: min(900px, 94%);
+  margin: 0 auto;
+  margin-top: 60px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: 14px;
+}
+
+/* 2화면용 작은 stranger 박스 */
+.strangerSmall{
+  width: 180px;   /* 취향대로 조절 가능 */
+  height: 140px;
+}
+
+/* 3화면용(조금 큰) stranger 박스 */
+.s3Stranger{
+  width: 320px;
+  height: 320px;
+}
+
+/* 말풍선을 rowTalk 안에서 폭 자동으로 차게 */
+.rowTalk .bubble{
+  width: auto;
+  flex: 1;
+  margin: 0;
+}
+
+</style>
+</head>
+
+<body>
+<div id="scaleRoot">
+  <div class="frame">
+
+    <div class="titleBar" id="titleBar">어둠의 거래소 - ROUND 1</div>
+
+    <!-- SCREEN 1 -->
+    <section class="screen show" id="screen1">
+      <div class="s1Top">
+        <div class="strangerBig card">
+          <img src="static/stranger.png" alt="stranger">
+        </div>
+        <div class="bubble" id="bubble1"></div>
+      </div>
+
+      <div class="s1Bet">
+        <div class="heartLabel">♥</div>
+        <div class="betBox">
+          <div class="numCard" id="betNum">0</div>
+          <div>개</div>
+        </div>
+      </div>
+
+      <div class="btnRow">
+        <button class="btn small" id="btnMinus">♥-1</button>
+        <button class="btn small" id="btnPlus">♥+1</button>
+        <button class="btn" id="btnConfirm">확정</button>
+      </div>
+
+      <div class="mutedHint">※ 확정 후에만 선택할 수 있어요.</div>
+    </section>
+
+    <!-- SCREEN 2 -->
+    <section class="screen" id="screen2">
+      <div class="s2Header">
+        <div class="rowTalk">
+          <div class="strangerSmall card">
+            <img src="static/stranger.png" alt="stranger small">
+          </div>
+          <div class="bubble" id="bubble2"></div>
+        </div>
+      </div>
+
+      <div class="resultBanner card">
+        <span id="resultText">가위..바위..보!</span>
+        <span class="gainTag" id="gainTag"></span>
+      </div>
+
+      <!-- ✅ 합쳐진 원형 카드 -->
+      <div class="comboWrap">
+        <div class="comboCard card">
+          <div class="comboRing" id="comboRing">
+            <div class="mulRing" id="mulRing"></div>
+            <div class="lightDot" id="lightDot"></div>
+            <div class="centerDisc">
+              <div class="handBox" id="handBox">✊</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pickRow">
+        <button class="pickBtn" data-pick="rock">바위</button>
+        <button class="pickBtn" data-pick="scissors">가위</button>
+        <button class="pickBtn" data-pick="paper">보</button>
+      </div>
+    </section>
+
+    <!-- SCREEN 3 -->
+    <section class="screen" id="screen3">
+      <div class="s3Wrap">
+        <div class="gainBig" id="gainBig">획득 ♥ +0</div>
+          <div class="rowTalk">
+            <div class="s3Stranger card">
+              <img src="static/stranger.png" alt="stranger center">
+            </div>
+            <div class="bubble" id="bubble3"></div>
+          </div>
+
+        <div class="blankRow">
+          <button class="blankBtn" aria-label="next"></button>
+          <button class="blankBtn" aria-label="next"></button>
+          <button class="blankBtn" aria-label="next"></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 오디오 -->
+    <audio id="aChoice" src="static/choice.mp3" preload="auto"></audio>
+    <audio id="aSquid"  src="static/squidgame.mp3" preload="auto"></audio>
+    <audio id="aWin"    src="static/win.mp3" preload="auto"></audio>
+    <audio id="aLose"   src="static/loose.mp3" preload="auto"></audio>
+    <audio id="aRetry"  src="static/retry.mp3" preload="auto"></audio>
+
+  </div>
+</div>
+
+<script>
+/* ✅ iPad/모바일 한 화면 자동 축소 */
+function fit(){
+  const root = document.getElementById('scaleRoot');
+  const frame = document.querySelector('.frame');
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const baseW = root.offsetWidth;
+  const baseH = frame.offsetHeight + 20;
+  const s = Math.min(1, vw / baseW, vh / baseH);
+  root.style.transform = `scale(${s})`;
+  root.style.transformOrigin = 'top center';
+}
+window.addEventListener('load', fit);
+window.addEventListener('resize', fit);
+
+/* 라운드별 대사 */
+const preLines = [
+  "목숨을 거래하러 왔나?<br>몇개의 목숨을 내놓을지 정해.",
+  "또왔나?",
+  "우리 와이프보다 자주 보는구,<br>.....불사신인가?",
+  "이러다 다 죽어!",
+  "도박중독 상담은 국번없이 1336이라네"
+];
+const postLines = [
+  "베짱이 대단하군",
+  "지옥같은 세상에서 우리같은 사람들이 가진거라곤 목숨밖에 없는 인생이지..",
+  "단골 되겠어",
+  "자꾸 살아남는걸 보니 자네는 운이 좋나보군",
+  "오늘도 럭키비키이길.."
+];
+function lineByRound(arr, round){
+  return arr[(round - 1) % arr.length];
+}
+
+/* 요소 */
+const titleBar = document.getElementById('titleBar');
+const s1 = document.getElementById('screen1');
+const s2 = document.getElementById('screen2');
+const s3 = document.getElementById('screen3');
+const bubble1 = document.getElementById('bubble1');
+const bubble2 = document.getElementById('bubble2');
+const bubble3 = document.getElementById('bubble3');
+
+const betNum = document.getElementById('betNum');
+const btnMinus = document.getElementById('btnMinus');
+const btnPlus = document.getElementById('btnPlus');
+const btnConfirm = document.getElementById('btnConfirm');
+
+const resultText = document.getElementById('resultText');
+const gainTag = document.getElementById('gainTag');
+const gainBig = document.getElementById('gainBig');
+
+const handBox = document.getElementById('handBox');
+const mulRing = document.getElementById('mulRing');
+const lightDot = document.getElementById('lightDot');
+
+const aChoice = document.getElementById('aChoice');
+const aSquid  = document.getElementById('aSquid');
+const aWin    = document.getElementById('aWin');
+const aLose   = document.getElementById('aLose');
+const aRetry  = document.getElementById('aRetry');
+
+function showScreen(n){
+  s1.classList.remove('show');
+  s2.classList.remove('show');
+  s3.classList.remove('show');
+  if(n===1) s1.classList.add('show');
+  if(n===2) s2.classList.add('show');
+  if(n===3) s3.classList.add('show');
+  fit();
+}
+
+/* 상태 */
+let round = 1;
+let bet = 0;
+let confirmed = false;
+let busy = false;
+
+/* UI 갱신 */
+function refreshTitle(){
+  titleBar.textContent = `어둠의 거래소 - ROUND ${round}`;
+}
+function refreshS1(){
+  bubble1.innerHTML = lineByRound(preLines, round);
+  betNum.textContent = bet;
+}
+function refreshS2Base(){
+  bubble2.innerHTML = lineByRound(postLines, round);
+  resultText.textContent = "가위..바위..보!";
+  gainTag.style.display = "none";
+  gainTag.textContent = "";
+  startIdleSpin();
+  clearRouletteHit();
+  lightDot.style.display = "none";
+}
+function refreshS3(gain, outcome){
+  const sign = gain > 0 ? "+" : "";
+  gainBig.textContent = `획득 ♥ ${sign}${gain}`;
+  if(outcome === "win"){
+    bubble3.textContent = "축하하네, 다시 도전하려면 아무 버튼이나 누르면 된다네.";
+  }else if(outcome === "draw"){
+    bubble3.textContent = "비겼군, 다시 도전하려면 아무 버튼이나 누르면 된다네.";
+  }else{
+    bubble3.textContent = "푸하하! 네 하트는 소중하게 보관해주겠네. 다시 도전하려면 아무 버튼이나 누르면 된다네.";
+  }
+}
+
+/* 오디오 */
+function playSound(a){
+  try{
+    a.currentTime = 0;
+    const p = a.play();
+    if(p && p.catch) p.catch(()=>{});
+  }catch(e){}
+}
+function getAudioMs(a, fallbackMs){
+  const d = a.duration;
+  if(Number.isFinite(d) && d > 0) return Math.floor(d * 1000);
+  return fallbackMs;
+}
+
+/* 베팅 */
+btnMinus.addEventListener('click', ()=>{
+  if(confirmed || busy) return;
+  bet = Math.max(0, bet - 1);
+  betNum.textContent = bet;
+});
+btnPlus.addEventListener('click', ()=>{
+  if(confirmed || busy) return;
+  bet = Math.min(99, bet + 1);
+  betNum.textContent = bet;
+});
+btnConfirm.addEventListener('click', ()=>{
+  if(busy) return;
+  confirmed = true;
+  showScreen(2);
+  refreshS2Base();
+});
+
+/* 가위바위보 스핀 */
+const spinOrder = ["rock","scissors","paper"];
+const icon = { rock:"✊", scissors:"✌", paper:"✋" };
+let spinIdx = 0;
+let spinTimer = null;
+
+function startIdleSpin(){
+  stopSpin();
+  spinIdx = 0;
+  handBox.textContent = icon[spinOrder[spinIdx]];
+  spinTimer = setInterval(()=>{
+    spinIdx = (spinIdx + 1) % spinOrder.length;
+    handBox.textContent = icon[spinOrder[spinIdx]];
+  }, 120);
+}
+function stopSpin(){
+  if(spinTimer){ clearInterval(spinTimer); spinTimer = null; }
+}
+
+/* 덜 뭉치게: CPU 손 셔플백 + 3연속 방지 */
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+let cpuBag = [];
+let cpuLast = null;
+let cpuStreak = 0;
+
+function pickCpu(){
+  if(cpuBag.length === 0) cpuBag = shuffle([...spinOrder]);
+  let cpu = cpuBag.pop();
+
+  if(cpuStreak >= 2 && cpu === cpuLast){
+    if(cpuBag.length > 0){
+      const alt = cpuBag.pop();
+      cpuBag.push(cpu);
+      cpu = alt;
+    }else{
+      cpuBag = shuffle([...spinOrder]);
+      cpu = cpuBag.pop();
+    }
+  }
+
+  if(cpu === cpuLast) cpuStreak++;
+  else { cpuLast = cpu; cpuStreak = 1; }
+
+  return cpu;
+}
+
+/* 승/무/패 */
+function verdict(you, cpu){
+  if(you === cpu) return "draw";
+  if(
+    (you==="rock" && cpu==="scissors") ||
+    (you==="scissors" && cpu==="paper") ||
+    (you==="paper" && cpu==="rock")
+  ) return "win";
+  return "lose";
+}
+
+/* 룰렛 */
+const multipliers = [1,2,7,4,2,5,1,2,7,4,10];
+const N = multipliers.length;
+
+/* 숫자 배치(1시부터) */
+function renderRing(){
+  mulRing.innerHTML = "";
+  for(let i=0;i<N;i++){
+    const ang = (-60 + (360/N)*i) * Math.PI/180;
+    const r = 118;
+    const x = Math.cos(ang) * r;
+    const y = Math.sin(ang) * r;
+    const s = document.createElement('span');
+    s.textContent = multipliers[i];
+    s.dataset.idx = i;
+    s.style.left = `calc(50% + ${x}px)`;
+    s.style.top  = `calc(50% + ${y}px)`;
+    mulRing.appendChild(s);
+  }
+}
+renderRing();
+
+function clearRouletteHit(){
+  mulRing.querySelectorAll('span').forEach(s=>s.classList.remove('hit'));
+}
+
+/* 타겟도 덜 뭉치게 */
+let targetBag = [];
+let lastTarget = null;
+function pickTarget(){
+  if(targetBag.length === 0){
+    targetBag = shuffle([...Array(N)].map((_,i)=>i));
+  }
+  let t = targetBag.pop();
+  if(lastTarget === t && targetBag.length){
+    const alt = targetBag.pop();
+    targetBag.push(t);
+    t = alt;
+  }
+  lastTarget = t;
+  return t;
+}
+
+function indexNearestTo12(){
+  let bestI = 0, bestD = 1e9;
+  for(let i=0;i<N;i++){
+    const deg = -60 + (360/N)*i;
+    const d = Math.abs(deg - (-90));
+    if(d < bestD){ bestD = d; bestI = i; }
+  }
+  return bestI;
+}
+function placeDot(i){
+  const ang = (-60 + (360/N)*i) * Math.PI/180;
+  const r = 132;
+  const x = Math.cos(ang) * r;
+  const y = Math.sin(ang) * r;
+  lightDot.style.left = `calc(50% + ${x}px)`;
+  lightDot.style.top  = `calc(50% + ${y}px)`;
+}
+
+function runRoulette(){
+  return new Promise((resolve)=>{
+    clearRouletteHit();
+    lightDot.style.display = "block";
+
+    let idx = indexNearestTo12(); // 12시 근처에서 시작
+    placeDot(idx);
+
+    const target = pickTarget();
+    const spins = 3*N + Math.floor(Math.random()*N);
+    let steps = 0;
+
+    let interval = 55;
+    const slowDownAt = spins - 12;
+
+    function tick(){
+      idx = (idx + 1) % N;
+      placeDot(idx);
+      steps++;
+
+      if(steps > slowDownAt) interval += 22;
+
+      if(steps >= spins && idx === target){
+        mulRing.querySelectorAll('span').forEach(s=>{
+          if(+s.dataset.idx === idx) s.classList.add('hit');
+        });
+        resolve(multipliers[idx]);
+        return;
+      }
+      setTimeout(tick, interval);
+    }
+    setTimeout(tick, interval);
+  });
+}
+
+/* 인라인 획득 표시 */
+function showGainInline(amount){
+  const sign = amount > 0 ? "+" : "";
+  gainTag.textContent = `획득 ♥ ${sign}${amount}`;
+  gainTag.style.display = "inline-block";
+}
+
+/* 플레이 타이머 */
+let playTimer = null;
+function stopPlayTimers(){
+  if(playTimer){ clearInterval(playTimer); playTimer = null; }
+}
+
+/* 버튼 클릭 */
+document.querySelectorAll('.pickBtn').forEach(btn=>{
+  btn.addEventListener('click', async ()=>{
+    if(!confirmed) return;
+    if(bet <= 0) return;
+    if(busy) return;
+    busy = true;
+
+    stopSpin();
+    stopPlayTimers();
+    clearRouletteHit();
+    lightDot.style.display = "none";
+    gainTag.style.display = "none";
+    resultText.textContent = "가위..바위..보!";
+
+    playSound(aChoice);
+    playSound(aSquid);
+
+    const totalMs = getAudioMs(aSquid, 6000);
+    const fastMs = Math.max(0, totalMs - 2000);
+    const slowMs = Math.min(2000, totalMs);
+
+    let t = 0;
+    let interval = 70;
+    spinIdx = 0;
+    handBox.textContent = icon[spinOrder[spinIdx]];
+
+    playTimer = setInterval(()=>{
+      spinIdx = (spinIdx + 1) % spinOrder.length;
+      handBox.textContent = icon[spinOrder[spinIdx]];
+      t += interval;
+
+      if(t >= fastMs){
+        clearInterval(playTimer);
+
+        let t2 = 0;
+        let slowInterval = 260;
+        playTimer = setInterval(()=>{
+          spinIdx = (spinIdx + 1) % spinOrder.length;
+          handBox.textContent = icon[spinOrder[spinIdx]];
+          t2 += slowInterval;
+
+          if(t2 >= slowMs){
+            clearInterval(playTimer);
+
+            const cpu = pickCpu();
+            handBox.textContent = icon[cpu];
+
+            const you = btn.dataset.pick;
+            const v = verdict(you, cpu);
+
+            if(v === "win") resultText.textContent = "승리!";
+            else if(v === "draw") resultText.textContent = "무승부!";
+            else resultText.textContent = "패배!";
+
+            if(v === "win") playSound(aWin);
+            else if(v === "draw") playSound(aRetry);
+            else playSound(aLose);
+
+            handleOutcome(v);
+          }
+        }, slowInterval);
+      }
+    }, interval);
+  });
+});
+
+async function handleOutcome(v){
+  let gain = 0;
+
+  if(v === "win"){
+    const mul = await runRoulette();
+    gain = bet * mul;
+    showGainInline(gain);
+    setTimeout(()=>goToScreen3(gain, v), 900);
+  }else if(v === "draw"){
+    gain = bet;
+    showGainInline(gain);
+    setTimeout(()=>goToScreen3(gain, v), 900);
+  }else{
+    gain = -bet;
+    showGainInline(gain);
+    setTimeout(()=>goToScreen3(gain, v), 900);
+  }
+}
+
+function goToScreen3(gain, outcome){
+  busy = false;
+  refreshS3(gain, outcome);
+  showScreen(3);
+}
+
+/* screen3 → 다음 라운드 */
+document.querySelectorAll('.blankBtn').forEach(b=>{
+  b.addEventListener('click', ()=>nextRound());
+});
+
+function nextRound(){
+  round++;
+  bet = 0;
+  confirmed = false;
+  busy = false;
+  refreshTitle();
+  refreshS1();
+  showScreen(1);
+}
+
+/* 초기 */
+function init(){
+  refreshTitle();
+  refreshS1();
+  showScreen(1);
+}
+init();
+</script>
+</body>
+</html>
