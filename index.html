@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-<title>어둠의 거래소 - ROUND 1</title>
+<title>의문의 남자 - 가위바위보</title>
 
 <style>
   html,body{
@@ -347,7 +347,7 @@
     <div class="frame">
 
       <div class="titleBar card">
-        <div>어둠의 거래소</div>
+        <div>의문의 남자</div>
         <small id="roundTop">- ROUND 1</small>
       </div>
 
@@ -366,10 +366,10 @@
           <div class="hintLine" id="hintLine"></div>
 
           <div class="riskRow">
-            <button class="riskBtn" data-win="0.50" data-mult="1">승리확률 50%, 보상 1배</button>
-            <button class="riskBtn" data-win="0.40" data-mult="2">승리확률 40%, 보상 2배</button>
-            <button class="riskBtn" data-win="0.30" data-mult="3">승리확률 30%, 보상 3배</button>
-            <button class="riskBtn" data-win="0.10" data-mult="4">승리확률 10%, 보상 4배</button>
+            <button class="riskBtn" data-win="0.50" data-mult="1">승리확률 50%,<br> 보상: 3일 추가 </button>
+            <button class="riskBtn" data-win="0.40" data-mult="2">승리확률 40%,<br> 보상: 4일 추가 </button>
+            <button class="riskBtn" data-win="0.30" data-mult="3">승리확률 30%,<br> 보상: 5일 추가 </button>
+            <button class="riskBtn" data-win="0.10" data-mult="4">승리확률 10%,<br> 보상: 20일 추가 </button>
           </div>
         </div>
       </section>
@@ -470,15 +470,15 @@ let REWARD_MULT = 1;     // 버튼 선택 보상 배수
 
 // ✅ 1페이지 첫 대사 수정
 const S1_QUOTES = [
-  "목숨을 거래하러 왔나?",
-  "또왔나?",
-  "우리 와이프보다 자주 보는구,\n.....불사신인가?",
+  "안녕~! 그나저나 좀비를 처치하는데 꽤나 힘들어 보이네..나와 거래하지 않을래? 거래조건은 아래와 같아.",
+  "헬로~",
+  "끈기하난 인정해줄게! 운은...음...",
   "이러다 다 죽어!",
   "도박중독 상담은 국번없이 1336이라네"
 ];
 const S2_QUOTES = [
   "베짱이 대단하군",
-  "지옥같은 세상에서 우리같은 사람들이 가진거라곤 목숨밖에 없는 인생이지..",
+  "지옥같은 세상에서 잘 살아남아보자구!",
   "단골 되겠어",
   "자꾸 살아남는걸 보니 자네는 운이 좋나보군",
   "오늘도 럭키비키이길.."
@@ -571,8 +571,8 @@ function setRoundUI(){
 
   // ✅ 안내 문구 교체(+ ♥2개 빨간색)
   hintLine.innerHTML =
-    `게임을 하고싶다면 <span class="red">♥ 2개</span>를 베팅해야 한다네.<br>` +
-    `준비가 되었다면 아래 게임 조건을 고르게.`;
+    `나와 <span class="red">가위바위보</span>를 해서 네가 이긴다면 <span class="red">생존 일수를 추가</span>해줄게!<br>` +
+    `기회는 <span class="red">총 3번</span>이야. 준비가 되었다면 아래 게임 조건을 골라.`;
 }
 
 /* =======================
@@ -667,12 +667,12 @@ function chooseOutcomeBalanced(){
 function buildGainMessage(result){
   if(result === "win"){
     const add = STAKE_HEARTS * REWARD_MULT;
-    return `♥ ${add}개를 추가로 획득합니다`;
+    return `약속대로 생존일수를 추가했어! `;
   }
   if(result === "draw"){
-    return `추가획득 ♥ 없음. ♥개수가 유지됩니다.`;
+    return `비겼으니 기회만 날아갔네~`;
   }
-  return `♥ ${STAKE_HEARTS}개를 잃습니다.`;
+  return `푸하하! 내가 이겼다~ 아무일도 일어나지 않아. 기회만 잃은거야.`;
 }
 
 /* =======================
@@ -736,9 +736,9 @@ async function onPick(pick){
 
       gainBox.textContent = buildGainMessage(res);
 
-      if(res === "win") bubble3.textContent = "축하하네, 다시 도전하려면 아무 버튼이나 누르면 된다네.";
-      if(res === "draw") bubble3.textContent = "비겼군, 다시 도전하려면 아무 버튼이나 누르면 된다네.";
-      if(res === "lose") bubble3.textContent = "푸하하! 네 하트는 소중하게 보관해주겠네";
+      if(res === "win") bubble3.textContent = "다시 도전하려면 아래 아무 버튼이나 눌러.";
+      if(res === "draw") bubble3.textContent = "다시 도전하려면 아래 아무 버튼이나 눌러.";
+      if(res === "lose") bubble3.textContent = "다시 도전하려면 아래 아무 버튼이나 눌러.";
 
       setTimeout(()=>{
         showView(3);
